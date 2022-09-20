@@ -1,3 +1,4 @@
+from calendar import c
 import socket
 from uuid import uuid4
 import warnings
@@ -8,7 +9,6 @@ import random
 import time
 
 import onlineUtilities as ou
-print(ou)
 
 #Rename to connection
 #TODO: Remove permission systems from here no need for them.
@@ -18,34 +18,50 @@ class Connection():
         self.ip,self.port = address
         self.socket = socket
         self.username = username
-
-        ### This is a 
         self.createPacket = onlineUtilities['createPacket']
         self.decodePacket = onlineUtilities['decodePacket']
         self.test = onlineUtilities['test']
-
-
         self.handShake()
 
+    #Get all "important" information in dictionary
+    def GetRepersentation(self,):
+        temp = {
+            "uuid" : self.uuid,
+            "ip" : self.ip,
+            "port" : self.port,
+            "socket" : self.socket,
+            "username" : self.username
+
+        }
+        return temp
+
     def disconnect(self,):
+        p = self.createPacket("disconnect",{
+            "reason" : "server disconnected"
+        })
         self.socket.close()
+        return True
 
     def handShake(self,):
         p = self.createPacket('handShake',{
             'status':'success',
             'uuid': self.uuid
         })
-        self.socket.send(p)
-
+        self.sendPacket(p)
 
     #Checks if the client still responds if not drop the connection
     def isAlive(self,):
-        p = self.createPacket('isAlive',{})
-        self.socket.send(p)
+        p = self.createPacket('isAlive')
+        self.sendPacket(p)
 
 
-    def __str__(self):
-        return str(self.username)
+    def sendPacket(self,packet):
+        self.socket.send(packet)
+
+
+    def test(self,):
+        print("This is a test method for connection class.")
+
         
 ####FIXME: Remove server classs from extending actions.py
 class Server(actions.Actions):
@@ -61,15 +77,11 @@ class Server(actions.Actions):
         self.clients = {}
         self.actions = {}
 
-
-        #self.start()
-
-
     def start(self,):
         thread_listen = threading.Thread(target=self.listen, args=())
         thread_listen.name = "thread_listen"
         thread_listen.start()
-        self.mainLoop()
+        #self.mainLoop()
 
 
 
@@ -99,8 +111,61 @@ class Server(actions.Actions):
         print("running main loop")
         while True:
             time.sleep(10)
+            p = self.createPacket("test",{"data":"this is test data"})
+            #self.SendPacketForAll(p)
+            print(self.GetRandomConnection().sendPacket(self.createPacket("HELLO")))
             print("Main runs")
-            pass
+
+
+    def SendPacket(self,uuid,packet):
+        con = self.GetConnection(uuid)
+        if con:
+            con.sendPacket(packet)
+
+    def SendPacketForAll(self,packet):
+        for c in self.clients:
+            self.clients[c].sendPacket(packet)
+    
+    def GetConnection(self,uuid):
+        if uuid in self.clients:
+            return self.clients[uuid]
+        return None
+
+    def GetAllConnections(self,):
+        return self.clients
+
+    ### Gets random connection. If no connection was found return False
+    def GetRandomConnection(self,):
+        temp = list(self.clients.keys())
+        if len(temp) > 0:
+            uuid = random.choice(temp)
+            time.sleep(5)
+            return self.clients[uuid]
+        return False
+
+    def DisconnectConnection(self,uuid):
+        con = self.GetConnection(uuid)
+        if con:
+            con.disconnect()
+            del self.clients[uuid]
+            return True
+        return False
+
+
+
+    def GetThreadInfo(self,):
+        threads = threading.enumerate()
+        names = []
+        for thread in threads:
+            names.append(thread.name)
+
+        temp = {
+            "count" : len(threads),
+            "names": names
+        }
+
+        return temp
+
 
 
     ### Method for testing threads.
@@ -111,8 +176,6 @@ class Server(actions.Actions):
         logging.info("Thread %s: finishing", name)
 
 
-
-
     def bindAction(self,action,func,*args):
         if action.startswith("Core"):
             warnings.warn("Warning: "+action+" bind might be overiding Core function bind")
@@ -120,16 +183,10 @@ class Server(actions.Actions):
         self.actions[action] = {"func":func,"args":args}
 
 
-
-
-
     def storeConnection(self,uuid,address,username,socket):
-
         self.clients[uuid] = Connection(self.getMethods(),uuid,address,username,socket)
-        print("Connection stored: "+str(len(self.clients)))
+        print("New connection stored with uuid: "+uuid+" | "+str(username)+" | Connections: "+str(len(self.clients)))
         return self.clients[uuid]
-
-
 
 
 
@@ -160,3 +217,41 @@ if __name__ == '__main__':
     s.bindAction("listallclients",s.ListAllClients,s.clients)
     
     s.start()
+
+
+    while True:
+        command = str(input("Choose a command: "))
+        match command:
+            case "pingall":
+                s.SendPacketForAll(s.createPacket("PING"))
+
+
+            case "list":
+                print(s.GetAllConnections())
+
+            case "connectioninfo":
+                uuid = input("Give connection uuid e for exit: ")
+                if uuid == "e":
+                    pass
+                else:
+                    print(s.GetConnection(uuid).GetRepersentation())
+
+            case "disconnect":
+                uuid = input("Give connection uuid e for exit: ")
+                if uuid == "e":
+                    pass
+                else:
+                    print(s.DisconnectConnection(uuid))
+
+
+            case "threads":
+                t = s.GetThreadInfo()
+                print(t)
+
+            case "stop":
+                print("Shutting down....")
+                break
+
+            case _:
+                print("unknown command")
+
