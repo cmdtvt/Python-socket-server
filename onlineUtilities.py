@@ -107,6 +107,32 @@ class Utilities():
         print(message)
         return shouldRestart
 
+
+    def test(self,):
+        print("Test in online utilities was ran!")
+        return "This is a test function!"
+
+
+
+
+    def getMethods(self,):
+        temp = {
+            "createPacket": self.createPacket,
+            "decodePacket": self.decodePacket,
+            "checkNetworkError": self.checkNetworkError,
+            "test":self.test
+        }
+        return temp
+
+        #Below code is start of an automatic way to fetch all metods.
+        '''''
+        methods = [func for func in dir(self) if callable(getattr(self, func))]
+        temp_dict = {}
+        for m in methods:
+            temp_dict[m] = m
+        return temp_dict
+        '''''
+
         
 
 
@@ -158,4 +184,8 @@ if __name__ == '__main__':
 
     decr = ou.decryptPacket(encr,["token","data"])
     print(decr)
+
+    methods = ou.getMethods()
+
+    print(methods['test']())
     

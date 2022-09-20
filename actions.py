@@ -2,15 +2,20 @@ from calendar import c
 import onlineUtilities as ou
 from uuid import uuid4
 
+
+### These are server core actions
+### To add your own actions make seperate file and call bindAction from the server.
+
 class Actions(ou.Utilities):
 
     def __init__(self):
         super().__init__()
+        self.ou = None
 
     ##FIXME: Pass storeClient as argument
     def ActionAuth(self,data,*args):
         storeConnection = args[0][0]
-        #clientSocket = args[0][1]
+        clientSocket = args[0][1]
         print(args)
         credentials = {"dev":"test","cmdtvt":"test2"}
         p = None

@@ -3,6 +3,9 @@ from uuid import uuid4
 import warnings
 import actions
 
+import onlineUtilities as ou
+print(ou)
+
 #Rename to connection
 #TODO: Remove permission systems from here no need for them.
 class Connection():
@@ -11,7 +14,11 @@ class Connection():
         self.ip,self.port = address
         self.socket = socket
         self.username = username
-        self.ou = onlineUtilities
+
+        ### This is a 
+        self.createPacket = onlineUtilities['createPacket']
+        self.decodePacket = onlineUtilities['decodePacket']
+        self.test = onlineUtilities['test']
 
 
         self.handShake()
@@ -21,11 +28,12 @@ class Connection():
 
     def handShake(self,):
 
-        p = self.ou.createPacket('handShake',{
+        p = self.createPacket('handShake',{
             'status':'success',
             'uuid': self.uuid
         })
         self.socket.send(p)
+        self.disconnect()
 
 
     def __str__(self):
@@ -52,7 +60,7 @@ class Server(actions.Actions):
         while True:
             print("Waiting for connections...")
             client,address = self.socket.accept()
-            self.storeConnection(ou,str(uuid4()),address,None,client) 
+            self.storeConnection(str(uuid4()),address,None,client) 
 
             data = client.recv(self.bufferSize)
             self.processPacket(data,client,address)
@@ -64,10 +72,19 @@ class Server(actions.Actions):
         print("Created function bind for action: "+action)
         self.actions[action] = {"func":func,"args":args}
 
-    def storeConnection(self,ou,uuid,address,username,socket): 
-        self.clients[uuid] = Connection(ou,uuid,address,username,socket)
+
+
+
+
+    def storeConnection(self,uuid,address,username,socket):
+
+        self.clients[uuid] = Connection(self.getMethods(),uuid,address,username,socket)
         print("Connection stored: "+str(len(self.clients)))
         return self.clients[uuid]
+
+
+
+
 
     def processPacket(self,packet,client,address=None):
         packet = self.decodePacket(packet)
