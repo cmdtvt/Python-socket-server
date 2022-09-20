@@ -39,7 +39,7 @@ class Client():
                     'password' : 'test'
                 })
                 self.socket.send(p)
-                print("Connectd to server")
+                print("Connected to server")
                 break
 
             except socket.error as e:

@@ -29,7 +29,7 @@ class Utilities():
     def setToken(self,token:str):
         self.token = token
 
-    def createPacket(self,name:str='undefined-packet',data:dict={},asbytes:bool=True):
+    def createPacket(self,name:str='undefined-packet',data:dict=None,asbytes:bool=True):
         packet = {
             'action':name,
             'data':data,
@@ -103,7 +103,8 @@ class Utilities():
                 shouldRestart = True
 
             case _:
-                raise self.NetworkErrorNotDefined
+                #raise self.NetworkErrorNotDefined
+                print("Undefined network error: ["+str(error)+"]")
         print(message)
         return shouldRestart
 

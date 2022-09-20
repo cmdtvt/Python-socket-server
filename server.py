@@ -1,7 +1,11 @@
 import socket
 from uuid import uuid4
 import warnings
+import threading
+import logging
 import actions
+import random
+import time
 
 import onlineUtilities as ou
 print(ou)
@@ -27,13 +31,17 @@ class Connection():
         self.socket.close()
 
     def handShake(self,):
-
         p = self.createPacket('handShake',{
             'status':'success',
             'uuid': self.uuid
         })
         self.socket.send(p)
-        self.disconnect()
+
+
+    #Checks if the client still responds if not drop the connection
+    def isAlive(self,):
+        p = self.createPacket('isAlive',{})
+        self.socket.send(p)
 
 
     def __str__(self):
@@ -54,18 +62,57 @@ class Server(actions.Actions):
         self.actions = {}
 
 
+        #self.start()
+
+
     def start(self,):
-        print("Server started")
+        thread_listen = threading.Thread(target=self.listen, args=())
+        thread_listen.name = "thread_listen"
+        thread_listen.start()
+        self.mainLoop()
+
+
+
+    ### Listen for new connections
+    def listen(self,):
         self.socket.listen()
         while True:
-            print("Waiting for connections...")
+            logging.info("Waiting for connections....")
+
+
+
             client,address = self.socket.accept()
-            self.storeConnection(str(uuid4()),address,None,client) 
+            self.storeConnection(str(uuid4()),address,None,client)
+            
+            try:
+                data = client.recv(self.bufferSize)
+                self.processPacket(data,client,address)
+                logging.info(str(data))
+            except socket.error as e:
+                if self.checkNetworkError(e.errno):
+                    print("Recieved command to shutdown")
+                    break
 
-            data = client.recv(self.bufferSize)
-            self.processPacket(data,client,address)
 
-    #TODO: Find a way to send passed args to function.
+
+    def mainLoop(self,):
+        print("running main loop")
+        while True:
+            time.sleep(10)
+            print("Main runs")
+            pass
+
+
+    ### Method for testing threads.
+    def threadTest(self,name="test"):
+        waittime = random.randrange(4,20)
+        logging.info("Thread %s: starting : %s", name,waittime)
+        time.sleep(waittime)
+        logging.info("Thread %s: finishing", name)
+
+
+
+
     def bindAction(self,action,func,*args):
         if action.startswith("Core"):
             warnings.warn("Warning: "+action+" bind might be overiding Core function bind")
@@ -111,4 +158,5 @@ if __name__ == '__main__':
     s = Server()
     #s.bindAction("auth",s.ActionAuth,s.storeConnection)
     s.bindAction("listallclients",s.ListAllClients,s.clients)
+    
     s.start()
