@@ -1,4 +1,4 @@
-from calendar import c
+#from calendar import c
 import socket
 from uuid import uuid4
 import warnings
@@ -35,10 +35,12 @@ class Connection():
         }
         return temp
 
+    ###TODO: If disconnect is called from connection class connection is still not removed from the client stiorage-
     def disconnect(self,):
         p = self.createPacket("disconnect",{
             "reason" : "server disconnected"
         })
+        self.sendPacket(p)
         self.socket.close()
         return True
 
@@ -81,8 +83,6 @@ class Server(actions.Actions):
         thread_listen = threading.Thread(target=self.listen, args=())
         thread_listen.name = "thread_listen"
         thread_listen.start()
-        #self.mainLoop()
-
 
 
     ### Listen for new connections
@@ -90,9 +90,6 @@ class Server(actions.Actions):
         self.socket.listen()
         while True:
             logging.info("Waiting for connections....")
-
-
-
             client,address = self.socket.accept()
             self.storeConnection(str(uuid4()),address,None,client)
             
@@ -105,8 +102,8 @@ class Server(actions.Actions):
                     print("Recieved command to shutdown")
                     break
 
-
-
+    
+    ####TODO: This is not really needed remove this at some point
     def mainLoop(self,):
         print("running main loop")
         while True:
@@ -143,6 +140,9 @@ class Server(actions.Actions):
             return self.clients[uuid]
         return False
 
+    def GetLatestConnection(self,):
+        return list(self.clients.keys())[-1]
+
     def DisconnectConnection(self,uuid):
         con = self.GetConnection(uuid)
         if con:
@@ -150,7 +150,6 @@ class Server(actions.Actions):
             del self.clients[uuid]
             return True
         return False
-
 
 
     def GetThreadInfo(self,):
@@ -163,7 +162,6 @@ class Server(actions.Actions):
             "count" : len(threads),
             "names": names
         }
-
         return temp
 
 
@@ -229,7 +227,7 @@ if __name__ == '__main__':
             case "list":
                 print(s.GetAllConnections())
 
-            case "connectioninfo":
+            case "coninfo":
                 uuid = input("Give connection uuid e for exit: ")
                 if uuid == "e":
                     pass
@@ -238,11 +236,19 @@ if __name__ == '__main__':
 
             case "disconnect":
                 uuid = input("Give connection uuid e for exit: ")
-                if uuid == "e":
-                    pass
-                else:
-                    print(s.DisconnectConnection(uuid))
+                match uuid:
+                    case "e":
+                        pass
+                    case "all":
+                        pass
+                        cons = s.GetAllConnections()
+                        for c in cons:
+                            s.DisconnectConnection(c)
+                    case _:
+                        print(s.DisconnectConnection(uuid))
 
+            case "disconnectrecent":
+                print(s.DisconnectConnection(uuid))
 
             case "threads":
                 t = s.GetThreadInfo()
