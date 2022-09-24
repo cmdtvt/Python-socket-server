@@ -92,7 +92,7 @@ class Utilities():
 
     #Returns True if client needs to restart
     def checkNetworkError(self,error):
-        message = "Caught exception socket.error ["+str(error)+"] : "
+        message = "Caught exception socket.error ["+str(error)+"] : "+str(errno.errorcode[error])
         shouldRestart = False
         match error:
             case errno.ECONNREFUSED:
@@ -104,7 +104,9 @@ class Utilities():
 
             case _:
                 #raise self.NetworkErrorNotDefined
-                print("Undefined network error: ["+str(error)+"]")
+                #print("Undefined network error: ["+str(error)+"]")
+                pass
+
         print(message)
         return shouldRestart
 

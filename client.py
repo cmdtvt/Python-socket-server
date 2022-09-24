@@ -33,8 +33,8 @@ class Client():
 
     def connect(self,):
         while True:
-            s = socket.socket()
-            s.settimeout(5)
+            #s = socket.socket()
+            #s.settimeout(5)
             try:
                 self.socket.connect((self.host,self.port))
                 p = self.ou.createPacket('handShake',{
@@ -109,5 +109,5 @@ if __name__ == '__main__':
     c.start()
 
     while True:
-        print("yeet")
+        print("client runs")
         time.sleep(10)
