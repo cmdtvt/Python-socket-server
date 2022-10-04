@@ -1,8 +1,9 @@
 #### This file has core parts of the network code.
 #### Server & Client will extend this file to get all needed things.
+import logging
 import socket
 import threading
-import logging
+import random
 import warnings
 from uuid import uuid4
 import time
@@ -61,6 +62,30 @@ class Connection():
         print("This is a test method for connection class.")
 
 
+
+
+
+
+### Function that is "binded" extends this class.
+class Bind():
+    def __init__(self,name,*args):
+        self.name = name
+        self.args = args
+
+    def run(self,data):
+        raise NotImplementedError()
+
+    def test(self,string="this is a test"):
+        print(string)
+
+
+
+
+
+
+
+
+
 import onlineUtilities
 import coreActions
 
@@ -76,20 +101,22 @@ class ComCore(onlineUtilities.Utilities):
         
         self.clients = {}
         self.actions = {}
-        self.loadCoreActions()
+        #self.loadCoreActions()
 
-    def start(self,):
-        thread_listen = threading.Thread(target=self.listen, args=())
-        thread_listen.name = "thread_listen"
-        thread_listen.start()
+    def start(self,useThreading=True):
+        if useThreading:
+            thread_listen = threading.Thread(target=self.listen, args=())
+            thread_listen.name = "thread_listen"
+            thread_listen.start()
+        else:
+            logging.warning("ComCore running in no threading mode.")
+            self.listen()
 
     ### Creates the metod binds for core actions.
     ### TODO: Possibly make this process automatic so only thing that needs to be done is to add new ones to coreActions.py
     def loadCoreActions(self,):
         print("Loading core actions...")
         self.bindAction("disconnect",self.DisconnectConnection,)
-        pass
-
 
 
 
@@ -144,11 +171,15 @@ class ComCore(onlineUtilities.Utilities):
         return temp
 
 
-    def bindAction(self,action,func,*args):
+    def bindAction(self,name,bind:Bind):
+
+        '''
         if action.startswith("Core"):
             warnings.warn("Warning: "+action+" bind might be overiding Core function bind")
         print("Created function bind for action: "+action)
-        self.actions[action] = {"func":func,"args":args}
+        #self.actions[action] = {"func":func,"args":args}
+        '''
+        self.actions[name] = bind
 
 
     #### Create a new connection object out of socket.
@@ -159,9 +190,12 @@ class ComCore(onlineUtilities.Utilities):
 
 
     def processPacket(self,packet,client,address=None):
+        logging.warning("Actions: "+str(self.actions))
         packet = self.decodePacket(packet)
         action = packet['action']
         data = packet['data']
+
+        logging.warning("Searching for: "+str(action))
 
         ip = None
         port = None
@@ -170,10 +204,17 @@ class ComCore(onlineUtilities.Utilities):
             ip,port = address
 
         if action in self.actions:
-            temp_action = self.actions[action]
-            temp = temp_action['func'](data,temp_action["args"])
-            if temp is not None:
-                client.send(temp)
+            temp_bind = self.actions[action]
+            logging.warning(str(temp_bind))
+
+            ###Does not need temp_action[args] passed cause they are already in the class
+            temp = temp_bind.run(data)
+            #FIXME: Figure out someting to do with returned data.
+
+
+            #temp = temp_bind['func'](data,temp_action["args"])
+            #if temp is not None:
+                #client.send(temp)
         else:
             print("Action not found")
             print(packet)
@@ -183,9 +224,3 @@ class ComCore(onlineUtilities.Utilities):
     def listen(self,*args):
         raise NotImplementedError()
 
-    ### Start thread that listens to incoming connections & packets.
-    ### TODO: Name this better maby?
-    def start(self,):
-        thread_listen = threading.Thread(target=self.listen, args=(), daemon=True)
-        thread_listen.name = "thread_listen"
-        thread_listen.start()

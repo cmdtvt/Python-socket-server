@@ -4,10 +4,10 @@
 
 
 class CLI():
-    def __init__(self,core):
+    def __init__(self,core,name=""):
         ### Takes in core class
         self.core = core
-        print("###### CoreTools CLI ######")
+        print("###### CoreTools CLI | "+name+" ######")
 
     def processCommand(self,):
         command = str(input("Choose a command: "))
@@ -40,6 +40,9 @@ class CLI():
                 #self.core.SendPacket(command[1], self.core.createPacket("PING"))
                 self.core.DisconnectConnection(command[1])
 
+            case "dropall":
+                self.core.  clients = {}
+
             case "disconnectrecent":
                 print(self.core.DisconnectConnection(uuid))
 
@@ -54,6 +57,7 @@ class CLI():
                 list            (list all clients)
                 coninfo [UUID]    (show info of connection)
                 disconnect [UUID]  (disconnect a connection)
+                dropall         (Removes all clients from memory)
                 disonnectrecent   (disconnect recent connection)
                 threads         (show all threads that are running)
                 help            (display this menu)

@@ -10,9 +10,6 @@ class Actions():
         print("test bind workked well.")
 
 
-    def 
-
-
 
     def ConnectionDisconnected(*args):
         pass
