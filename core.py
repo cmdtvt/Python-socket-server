@@ -1,5 +1,5 @@
-#### This file has core parts of the network code.
-#### Server & Client will extend this file to get all needed things.
+### This file has core parts of the network code.
+### Server & Client will extend this file to get all needed things.
 import logging
 import socket
 import threading
@@ -8,19 +8,22 @@ import warnings
 from uuid import uuid4
 import time
 
-#Basic connection object that stores socket and methods for managing it.
+### Manages one connection from the socket
 class Connection():
     def __init__(self,onlineUtilities,uuid,address,username,socket):
         self.uuid = uuid
         self.ip,self.port = address
         self.socket = socket
         self.username = username
+
+        ### create & decodePacket need to be passed this way because onlineUtilities can have
+        ### stored information about encryption keys etc...
         self.createPacket = onlineUtilities['createPacket']
         self.decodePacket = onlineUtilities['decodePacket']
         self.test = onlineUtilities['test']
         self.handShake()
 
-    #Get all "important" information in dictionary
+    ### Get all "important" information in dictionary
     def GetRepersentation(self,):
         temp = {
             "uuid" : self.uuid,
@@ -41,6 +44,7 @@ class Connection():
         self.socket.close()
         return True
 
+    ### Send a response that handShake was successfull
     def handShake(self,):
         p = self.createPacket('handShake',{
             'status':'success',
@@ -48,21 +52,18 @@ class Connection():
         })
         self.sendPacket(p)
 
-    #Checks if the client still responds if not drop the connection
+    ### Checks if the client still responds if not drop the connection
     def isAlive(self,):
         p = self.createPacket('isAlive')
         self.sendPacket(p)
 
-
+    ### Send packet to the connection
     def sendPacket(self,packet):
         self.socket.send(packet)
 
 
     def test(self,):
         print("This is a test method for connection class.")
-
-
-
 
 
 
@@ -81,11 +82,6 @@ class Bind():
 
 
 
-
-
-
-
-
 import onlineUtilities
 import coreActions
 
@@ -95,14 +91,12 @@ class ComCore(onlineUtilities.Utilities):
         self.host = host
         self.port = port
         self.bufferSize = bufferSize
-
-        #use socket.SOCK_DGRAM for udp socket
         self.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        
         self.clients = {}
         self.actions = {}
         #self.loadCoreActions()
 
+    ### Start a function that handles incoming connections.
     def start(self,useThreading=True):
         if useThreading:
             thread_listen = threading.Thread(target=self.listen, args=())
@@ -112,28 +106,35 @@ class ComCore(onlineUtilities.Utilities):
             logging.warning("ComCore running in no threading mode.")
             self.listen()
 
+    ### This is a dummy method
+    def listen(self,*args):
+        raise NotImplementedError()
+
+
     ### Creates the metod binds for core actions.
-    ### TODO: Possibly make this process automatic so only thing that needs to be done is to add new ones to coreActions.py
     def loadCoreActions(self,):
         print("Loading core actions...")
         self.bindAction("disconnect",self.DisconnectConnection,)
 
 
-
+    ### Send packet to connection with certain UUID
     def SendPacket(self,uuid,packet):
         con = self.GetConnection(uuid)
         if con:
             con.sendPacket(packet)
 
+    ### Send packet to all connections
     def SendPacketForAll(self,packet):
         for c in self.clients:
             self.clients[c].sendPacket(packet)
     
+    ### Get connection with it's UUID
     def GetConnection(self,uuid):
         if uuid in self.clients:
             return self.clients[uuid]
         return None
 
+    ### Get all connections
     def GetAllConnections(self,):
         return self.clients
 
@@ -146,9 +147,11 @@ class ComCore(onlineUtilities.Utilities):
             return self.clients[uuid]
         return False
 
+    ### Get the last connection in clients dictionary when it's converted to a list
     def GetLatestConnection(self,):
         return list(self.clients.keys())[-1]
 
+    ### Disconnect a connection with it's UUID
     def DisconnectConnection(self,uuid):
         con = self.GetConnection(uuid)
         if con:
@@ -157,7 +160,7 @@ class ComCore(onlineUtilities.Utilities):
             return True
         return False
 
-
+    ### Get dictionary which has infomartion about threads
     def GetThreadInfo(self,):
         threads = threading.enumerate()
         names = []
@@ -171,24 +174,17 @@ class ComCore(onlineUtilities.Utilities):
         return temp
 
 
-    def bindAction(self,name,bind:Bind):
-
-        '''
-        if action.startswith("Core"):
-            warnings.warn("Warning: "+action+" bind might be overiding Core function bind")
-        print("Created function bind for action: "+action)
-        #self.actions[action] = {"func":func,"args":args}
-        '''
-        self.actions[name] = bind
-
-
     #### Create a new connection object out of socket.
     def storeConnection(self,uuid,address,username,socket):
         self.clients[uuid] = Connection(self.getMethods(),uuid,address,username,socket)
         print("New connection stored with uuid: "+uuid+" | "+str(username)+" | Connections: "+str(len(self.clients)))
         return self.clients[uuid]
 
+    ### Create a new bind to a function
+    def bindAction(self,name,bind:Bind):
+        self.actions[name] = bind
 
+    ### Check if packet's action is found in self.actions. If so run the function.
     def processPacket(self,packet,client,address=None):
         logging.warning("Actions: "+str(self.actions))
         packet = self.decodePacket(packet)
@@ -206,21 +202,7 @@ class ComCore(onlineUtilities.Utilities):
         if action in self.actions:
             temp_bind = self.actions[action]
             logging.warning(str(temp_bind))
-
-            ###Does not need temp_action[args] passed cause they are already in the class
-            temp = temp_bind.run(data)
-            #FIXME: Figure out someting to do with returned data.
-
-
-            #temp = temp_bind['func'](data,temp_action["args"])
-            #if temp is not None:
-                #client.send(temp)
+            temp_bind.run(data)
         else:
             print("Action not found")
             print(packet)
-
-
-    ### This is a dummy method
-    def listen(self,*args):
-        raise NotImplementedError()
-

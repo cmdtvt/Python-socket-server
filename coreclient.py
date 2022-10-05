@@ -2,11 +2,6 @@ import socket
 import time
 import threading
 import logging
-
-ip = "127.0.0.1"
-port = 25565
-
-
 import core
 import coretools
 
@@ -15,7 +10,6 @@ class Client(core.ComCore):
         super().__init__(host,port,bufferSize)
         self.socket.connect((self.host,self.port))
         self.packetDelay = 5
-
 
     def listen(self,):
         ###TODO: check if socket is still active.
@@ -32,8 +26,6 @@ class Client(core.ComCore):
                     break
     def connect(self,):
         while True:
-            s = socket.socket()
-            s.settimeout(5)
             try:
                 self.socket.connect((self.host,self.port))
                 p = self.createPacket('handShake',{
@@ -48,14 +40,7 @@ class Client(core.ComCore):
                 self.checkNetworkError(e.errno)
 
 
-
-
-
-
 if __name__ == '__main__':
-
-
-
     class testAction(core.Bind):
         def __init__(self,name,*args):
             super().__init__(name,*args)
@@ -70,23 +55,17 @@ if __name__ == '__main__':
             logging.warning("Triggered handshake")
 
         def run(self,packet):
-
             print(self.test())
-
 
 
     c = Client()
     cli = coretools.CLI(c,"Client")
-
     c.bindAction("disconnect", testAction("disconnect"))
     c.bindAction("handShake", handShake("handShake"))
 
+
+
     c.start(True)
-
-
-
-    
-
 
 
     while True:

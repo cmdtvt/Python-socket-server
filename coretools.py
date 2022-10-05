@@ -50,6 +50,9 @@ class CLI():
                 t = self.core.GetThreadInfo()
                 print(t)
 
+            case "broadcast":
+                pass
+
             case "help":
                 print('''
                 pingall          (pings all clients)
