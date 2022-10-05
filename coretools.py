@@ -41,7 +41,7 @@ class CLI():
                 self.core.DisconnectConnection(command[1])
 
             case "dropall":
-                self.core.  clients = {}
+                self.core.clients = {}
 
             case "disconnectrecent":
                 print(self.core.DisconnectConnection(uuid))
@@ -51,6 +51,16 @@ class CLI():
                 print(t)
 
             case "broadcast":
+                pass
+
+            case "token":
+                print("Your token is: "+str(self.core.getToken()))
+
+            case "actions":
+                temp = self.core.actions.keys()
+                print(temp)
+
+            case "trigger":
                 pass
 
             case "help":

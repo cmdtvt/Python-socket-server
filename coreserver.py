@@ -10,6 +10,7 @@ import coretools
 class Server(core.ComCore):
     def __init__(self,host='127.0.0.1',port=25565,bufferSize=1024):
         super().__init__(host,port,bufferSize)
+        self.setToken(uuid4())
         self.socket.bind((self.host,self.port))
 
     ### Listen for new connections
@@ -18,7 +19,11 @@ class Server(core.ComCore):
         while True:
             logging.info("Waiting for connections....")
             client,address = self.socket.accept()
-            self.storeConnection(str(uuid4()),address,None,client)
+
+            ### UUID of the connection is defined here and it's sent forwards by connection class.
+            temp_token = str(uuid4())
+            self.storeConnection(temp_token,address,None,client)
+            self.GetConnection(temp_token).handShake(self.getToken())
             
             try:
                 data = client.recv(self.bufferSize)
@@ -54,8 +59,24 @@ if __name__ == '__main__':
         def run(self,message="message undefined"):
             self.server.SendPacketForAll(self.server.createPacket("broadcast",message))
 
+
+
+    class handShake(core.Bind):
+        def __init__(self,name,client,*args):
+            super().__init__(name,*args)
+            self.client = client
+            logging.warning("Triggered handshake")
+
+        def run(self,data,packet,socket):
+            print("packet in run: "+str(packet))
+            #self.client.setToken(data['uuid'])
+            self.client.storeConnection(data['uuid'],socket.getpeername(),None,socket)
+
+
+
     s.bindAction("disconnect", testAction("disconnect"))
-    s.bindAction("broadcast",broadcast(s))
+    #s.bindAction("handShake", handShake("handShake",s))
+    #s.bindAction("broadcast",broadcast(s))
     s.start()
 
     while True:

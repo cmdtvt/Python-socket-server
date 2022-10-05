@@ -11,7 +11,7 @@ import errno
 
 class Utilities():
     def __init__(self):
-        self.token = "yeet"
+        self.token = None
         self.useEncrypt = True
 
         #This might not be needed here because it might be smarter to store keys elsewhere.
@@ -27,7 +27,11 @@ class Utilities():
             self.createEncryptKeys()
 
     def setToken(self,token:str):
-        self.token = token
+        self.token = str(token)
+        print("Token was changed to: "+self.token)
+
+    def getToken(self,):
+        return self.token
 
     def createPacket(self,name:str='undefined-packet',data:dict=None,asbytes:bool=True):
         packet = {

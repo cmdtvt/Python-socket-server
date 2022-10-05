@@ -21,7 +21,7 @@ class Connection():
         self.createPacket = onlineUtilities['createPacket']
         self.decodePacket = onlineUtilities['decodePacket']
         self.test = onlineUtilities['test']
-        self.handShake()
+        #self.handShake()
 
     ### Get all "important" information in dictionary
     def GetRepersentation(self,):
@@ -30,7 +30,6 @@ class Connection():
             "ip" : self.ip,
             "port" : self.port,
             "socket" : self.socket,
-            "username" : self.username
 
         }
         return temp
@@ -45,10 +44,11 @@ class Connection():
         return True
 
     ### Send a response that handShake was successfull
-    def handShake(self,):
+    def handShake(self,remoteToken=None):
         p = self.createPacket('handShake',{
             'status':'success',
-            'uuid': self.uuid
+            'uuid': self.uuid,
+            'remoteToken':str(remoteToken),
         })
         self.sendPacket(p)
 
@@ -73,7 +73,8 @@ class Bind():
         self.name = name
         self.args = args
 
-    def run(self,data):
+    ### Data in run should be automaticly passed data from packet in processPacket
+    def run(self,data,packet,socket):
         raise NotImplementedError()
 
     def test(self,string="this is a test"):
@@ -95,6 +96,7 @@ class ComCore(onlineUtilities.Utilities):
         self.clients = {}
         self.actions = {}
         #self.loadCoreActions()
+
 
     ### Start a function that handles incoming connections.
     def start(self,useThreading=True):
@@ -187,6 +189,7 @@ class ComCore(onlineUtilities.Utilities):
     ### Check if packet's action is found in self.actions. If so run the function.
     def processPacket(self,packet,client,address=None):
         logging.warning("Actions: "+str(self.actions))
+        print(packet)
         packet = self.decodePacket(packet)
         action = packet['action']
         data = packet['data']
@@ -202,7 +205,7 @@ class ComCore(onlineUtilities.Utilities):
         if action in self.actions:
             temp_bind = self.actions[action]
             logging.warning(str(temp_bind))
-            temp_bind.run(data)
+            temp_bind.run(data,packet,client)
         else:
             print("Action not found")
             print(packet)

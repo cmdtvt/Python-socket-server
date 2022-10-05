@@ -41,29 +41,30 @@ class Client(core.ComCore):
 
 
 if __name__ == '__main__':
-    class testAction(core.Bind):
-        def __init__(self,name,*args):
-            super().__init__(name,*args)
-            self.test = "test"
 
-        def run(self,data):
-            print(self.test)
+
+    ### TODO: Move classes from here to actions file.
 
     class handShake(core.Bind):
-        def __init__(self,name,*args):
+        def __init__(self,name,client,*args):
             super().__init__(name,*args)
+            self.client = client
             logging.warning("Triggered handshake")
 
-        def run(self,packet):
-            print(self.test())
+        def run(self,data,packet,socket):
+            print("packet in run: "+str(packet))
+            if(data['status']=="success"):
+                print(socket)
+
+                self.client.setToken(data['uuid'])
+                self.client.storeConnection(data['remoteToken'],socket.getpeername(),None,socket)
+            else:
+                print("handShake returned status : "+str(data['status']))
 
 
     c = Client()
     cli = coretools.CLI(c,"Client")
-    c.bindAction("disconnect", testAction("disconnect"))
-    c.bindAction("handShake", handShake("handShake"))
-
-
+    c.bindAction("handShake", handShake("handShake",c))
 
     c.start(True)
 
