@@ -126,6 +126,7 @@ class Utilities():
         temp = {
             "createPacket": self.createPacket,
             "decodePacket": self.decodePacket,
+            "processPacket": self.processPacket,
             "checkNetworkError": self.checkNetworkError,
             "test":self.test
         }

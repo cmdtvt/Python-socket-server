@@ -20,8 +20,26 @@ class Connection():
         ### stored information about encryption keys etc...
         self.createPacket = onlineUtilities['createPacket']
         self.decodePacket = onlineUtilities['decodePacket']
+        self.processPacket = onlineUtilities['processPacket']
+        self.checkNetworkError = onlineUtilities['checkNetworkError']
         self.test = onlineUtilities['test']
         #self.handShake()
+
+    ### Start listening thread
+    def startListen(self,):
+        thread_listen = threading.Thread(target=self.listen, args=())
+        thread_listen.name = "thread_listen: "+str(self.uuid)
+        thread_listen.start()
+
+    ### Listen for incoming data
+    def listen(self,):
+        try:
+            data = self.socket.recv(1024)
+            self.processPacket(data,self.socket,self.address)
+            logging.info(str(data))
+        except socket.error as e:
+            if self.checkNetworkError(e.errno):
+                print("Error in data from: "+str(self.uuid))
 
     ### Get all "important" information in dictionary
     def GetRepersentation(self,):
@@ -102,7 +120,7 @@ class ComCore(onlineUtilities.Utilities):
     def start(self,useThreading=True):
         if useThreading:
             thread_listen = threading.Thread(target=self.listen, args=())
-            thread_listen.name = "thread_listen"
+            thread_listen.name = "RegisterNewConnections"
             thread_listen.start()
         else:
             logging.warning("ComCore running in no threading mode.")

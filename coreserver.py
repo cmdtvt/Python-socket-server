@@ -19,19 +19,14 @@ class Server(core.ComCore):
         while True:
             logging.info("Waiting for connections....")
             client,address = self.socket.accept()
-
+            
+            ### TODO: Find a way for this not to trigger everytime data is recieved.
             ### UUID of the connection is defined here and it's sent forwards by connection class.
             temp_token = str(uuid4())
             self.storeConnection(temp_token,address,None,client)
             self.GetConnection(temp_token).handShake(self.getToken())
+            self.GetConnection(temp_token).startListen()
             
-            try:
-                data = client.recv(self.bufferSize)
-                self.processPacket(data,client,address)
-                logging.info(str(data))
-            except socket.error as e:
-                if self.checkNetworkError(e.errno):
-                    print("Error")
 
 
 
