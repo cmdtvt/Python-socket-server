@@ -25,7 +25,7 @@ class Server(core.ComCore):
             temp_token = str(uuid4())
             self.storeConnection(temp_token,address,None,client)
             self.GetConnection(temp_token).handShake(self.getToken())
-            self.GetConnection(temp_token).startListen()
+            self.GetConnection(temp_token).startListen() #Start connections thread for listening packets
             
 
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
             super().__init__(name,*args)
             self.test = "test"
 
-        def run(self,data):
+        def run(self,data="yeet"):
             print(self.test)
 
     class broadcast(core.Bind):
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
 
 
-    s.bindAction("disconnect", testAction("disconnect"))
+    s.bindAction("triggertest", testAction("trigger test"))
     #s.bindAction("handShake", handShake("handShake",s))
     #s.bindAction("broadcast",broadcast(s))
     s.start()

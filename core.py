@@ -194,6 +194,11 @@ class ComCore(onlineUtilities.Utilities):
         return temp
 
 
+    def GetActions(self,):
+        return self.actions
+
+
+
     #### Create a new connection object out of socket.
     def storeConnection(self,uuid,address,username,socket):
         self.clients[uuid] = Connection(self.getMethods(),uuid,address,username,socket)

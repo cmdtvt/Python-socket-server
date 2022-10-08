@@ -1,13 +1,16 @@
 #### This file has code for taking user input and running client&server things with it.
 #### Basicly this is very simple CLI
 
-
+import os
 
 class CLI():
-    def __init__(self,core,name=""):
+    def __init__(self,core,name="",ostype="windows"):
         ### Takes in core class
         self.core = core
+        self.os = ostype
         print("###### CoreTools CLI | "+name+" ######")
+        print("Mode: "+self.os)
+
 
     def processCommand(self,):
         command = str(input("Choose a command: "))
@@ -17,67 +20,90 @@ class CLI():
         for x in range(1, len(command)):
             args.append(command[x].replace(" ",""))
 
+        try:
+            match command[0].replace(" ",""):
+                case "pingall":
+                    self.core.SendPacketForAll(self.core.createPacket("PING"))
 
-        match command[0].replace(" ",""):
-            case "pingall":
-                self.core.SendPacketForAll(self.core.createPacket("PING"))
-
-            case "ping":
-                self.core.SendPacket(command[1], self.core.createPacket("PING"))
+                case "ping":
+                    self.core.SendPacket(command[1], self.core.createPacket("PING"))
 
 
-            case "list":
-                print(self.core.GetAllConnections())
+                case "list":
+                    print(self.core.GetAllConnections())
 
-            case "coninfo":
-                uuid = input("Give connection uuid e for exit: ")
-                if uuid == "e":
+                case "coninfo":
+                    uuid = input("Give connection uuid e for exit: ")
+                    if uuid == "e":
+                        pass
+                    else:
+                        print(self.core.GetConnection(uuid).GetRepersentation())
+
+                case "disconnect":
+                    if command[1] == "self":
+                        con1 = list(self.GetAllConnections().keys())[0]
+                        print(con1)
+                        #self.GetConnection().SendPacket(command[1], self.core.createPacket("PING"))
+                    else:
+                        self.core.DisconnectConnection(command[1])
+
+                case "dropall":
+                    self.core.clients = {}
+
+                case "threads":
+                    t = self.core.GetThreadInfo()
+                    print(t)
+
+                case "broadcast":
                     pass
-                else:
-                    print(self.core.GetConnection(uuid).GetRepersentation())
 
-            case "disconnect":
-                #self.core.SendPacket(command[1], self.core.createPacket("PING"))
-                self.core.DisconnectConnection(command[1])
+                case "token":
+                    print("Your token is: "+str(self.core.getToken()))
 
-            case "dropall":
-                self.core.clients = {}
+                case "actions":
+                    temp = self.core.actions.keys()
+                    print(temp)
 
-            case "disconnectrecent":
-                print(self.core.DisconnectConnection(uuid))
+                case "trigger":
+                    name = command[1]
+                    if name in self.core.GetActions():
+                        self.core.GetActions()[name].run()
+                    else:
+                        print("No action found with name: "+str(name))
 
-            case "threads":
-                t = self.core.GetThreadInfo()
-                print(t)
+                case "clear":
+                    if self.os == "windows":
+                        os.system("cls")
+                    elif self.os == "linux":
+                        os.system("clear")
+                    else:
+                        print("unknown mode")
 
-            case "broadcast":
-                pass
+                case "mode":
+                    self.os = command[1]
 
-            case "token":
-                print("Your token is: "+str(self.core.getToken()))
+                case "help":
+                    print('''
+                    pingall          (pings all clients)
+                    ping [UUID]      (ping client with UUID)
+                    broadcast       (Send message to all clients)
+                    list            (list all clients)
+                    coninfo [UUID]    (show info of connection)
+                    disconnect [UUID]  (disconnect a connection)
+                    dropall         (Removes all clients from memory)
+                    actions         (List all binded functions)
+                    trigger         (Trigger a binded function)
+                    threads         (show all threads that are running)
+                    clear           (Clear the screen)
+                    mode [NAME]     (Change CLI mode)
+                    help            (display this menu)
+                    ''')
 
-            case "actions":
-                temp = self.core.actions.keys()
-                print(temp)
+                case "stop":
+                    print("Shutting down....")
+                case _:
+                    print("unknown command")
 
-            case "trigger":
-                pass
-
-            case "help":
-                print('''
-                pingall          (pings all clients)
-                ping [UUID]      (ping client with UUID)
-                list            (list all clients)
-                coninfo [UUID]    (show info of connection)
-                disconnect [UUID]  (disconnect a connection)
-                dropall         (Removes all clients from memory)
-                disonnectrecent   (disconnect recent connection)
-                threads         (show all threads that are running)
-                help            (display this menu)
-                ''')
-
-            case "stop":
-                print("Shutting down....")
-            case _:
-                print("unknown command")
+        except:
+            print("Error occured in command check your typing")
 
