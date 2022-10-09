@@ -15,6 +15,11 @@ class Connection():
         self.ip,self.port = address
         self.socket = socket
         self.username = username
+        self.firstConnected = time.time()
+
+        ### Stop's messages from beign sent to the connection
+        ### This should be turned on when client suddenly disconnects
+        self.suspended = False
 
         ### create & decodePacket need to be passed this way because onlineUtilities can have
         ### stored information about encryption keys etc...
@@ -25,7 +30,7 @@ class Connection():
         self.test = onlineUtilities['test']
         #self.handShake()
 
-    ### Start listening thread
+    ### Start thread for listening incoming data
     def startListen(self,):
         thread_listen = threading.Thread(target=self.listen, args=())
         thread_listen.name = "thread_listen: "+str(self.uuid)
@@ -38,6 +43,7 @@ class Connection():
             self.processPacket(data,self.socket,self.address)
             logging.info(str(data))
         except socket.error as e:
+            ###TODO: Find a way to handle error's from this.
             if self.checkNetworkError(e.errno):
                 print("Error in data from: "+str(self.uuid))
 
@@ -48,6 +54,7 @@ class Connection():
             "ip" : self.ip,
             "port" : self.port,
             "socket" : self.socket,
+            "connected":self.firstConnected
 
         }
         return temp
@@ -77,7 +84,10 @@ class Connection():
 
     ### Send packet to the connection
     def sendPacket(self,packet):
-        self.socket.send(packet)
+        if self.suspended == False:
+            self.socket.send(packet)
+        else:
+            print("Message not sent. Connection is suspended.")
 
 
     def test(self,):

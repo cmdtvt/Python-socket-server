@@ -2,6 +2,7 @@
 #### Basicly this is very simple CLI
 
 import os
+import sys
 
 class CLI():
     def __init__(self,core,name="",ostype="windows"):
@@ -101,6 +102,7 @@ class CLI():
 
                 case "stop":
                     print("Shutting down....")
+                    sys.exit()
                 case _:
                     print("unknown command")
 

@@ -1,9 +1,8 @@
 import socket
 import time
-import threading
 import logging
 import core
-import coretools
+
 
 class Client(core.ComCore):
     def __init__(self,host='127.0.0.1',port=25565,bufferSize=1024):
@@ -42,7 +41,7 @@ class Client(core.ComCore):
 
 if __name__ == '__main__':
 
-
+    import coretools
     ### TODO: Move classes from here to actions file.
 
     class handShake(core.Bind):
