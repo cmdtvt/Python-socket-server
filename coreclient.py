@@ -7,7 +7,6 @@ import core
 class Client(core.ComCore):
     def __init__(self,host='127.0.0.1',port=25565,bufferSize=1024):
         super().__init__(host,port,bufferSize)
-        self.socket.connect((self.host,self.port))
         self.packetDelay = 5
 
     def listen(self,):

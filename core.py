@@ -84,7 +84,7 @@ class Connection():
 
     ### Send packet to the connection
     def sendPacket(self,packet):
-        if self.suspended == False:
+        if self.suspend == False:
             self.socket.send(packet)
         else:
             print("Message not sent. Connection is suspended.")
@@ -120,14 +120,16 @@ class ComCore(onlineUtilities.Utilities):
         self.host = host
         self.port = port
         self.bufferSize = bufferSize
-        self.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         self.clients = {}
         self.actions = {}
+        self.connected = False
         #self.loadCoreActions()
 
 
     ### Start a function that handles incoming connections.
     def start(self,useThreading=True):
+        self.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+        self.connected = True
         if useThreading:
             thread_listen = threading.Thread(target=self.listen, args=())
             thread_listen.name = "RegisterNewConnections"
