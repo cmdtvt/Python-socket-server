@@ -111,10 +111,10 @@ class Bind():
 
 
 
-import onlineUtilities
-import coreActions
+from .onlineUtilities import *
 
-class ComCore(onlineUtilities.Utilities):
+
+class ComCore(Utilities):
     def __init__(self,host='127.0.0.1',port=25565,bufferSize=1024):
         super().__init__()
         self.host = host
