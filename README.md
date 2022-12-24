@@ -1,13 +1,14 @@
 ## Python Socket Server & Client
 This project is designed to siplify TCP server / client communication. Server and client can be easily implemented into needed project.
-### Start a basic server
+
+### Start a server
 When starting a server Server() can be provided with host & port on default they are `127.0.0.1` and `25565`
 
     from pnetwork import coreserver
     s = coreserver.Server()
     s.start()
 
-### Start a basic client
+### Start a client
     from pnetwork import coreclient
     c = coreclient.Client()
     c.start()
