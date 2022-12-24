@@ -11,10 +11,10 @@ class Server(ComCore):
     def __init__(self,host='127.0.0.1',port=25565,bufferSize=1024):
         super().__init__(host,port,bufferSize)
         self.setToken(uuid4())
-        self.socket.bind((self.host,self.port))
 
     ### Listen for new connections
     def listen(self,):
+        self.socket.bind((self.host,self.port))
         self.socket.listen()
         while True:
             logging.info("Waiting for connections....")
