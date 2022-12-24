@@ -1,10 +1,10 @@
 import socket
 import time
 import logging
-import core
+from .core import *
 
 
-class Client(core.ComCore):
+class Client(ComCore):
     def __init__(self,host='127.0.0.1',port=25565,bufferSize=1024):
         super().__init__(host,port,bufferSize)
         self.packetDelay = 5
