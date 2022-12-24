@@ -21,8 +21,6 @@ class CLI():
 
 
     def processCommand(self,):
-
-
         while True:
             command = str(input("Choose a command: "))
             command = command.split(" ")
