@@ -4,10 +4,41 @@ import time
 import rsa
 import errno
 
-#Create packet which can be sent through socket.
-#If asbytes is false return packet as dictionary,
 
-#TODO: Move encryption methods to their own class and extend Utilities class with it.
+class Packet():
+    def __init__(self,name:str='undefined-packet',token:str=None,data:dict=None):
+        self.action = name
+        self.data = data
+        self.packet_created = time.time()
+        self.token = token
+
+
+
+    def GetToken(self,):
+        return self.token
+
+    def GetPacket(self,):
+        temp_packet = {
+            'action':self.action,
+            'data':self.data,
+            'packet-created':self.packet_created,
+            'token':self.token
+        }
+        return temp_packet
+
+    def GetPacketAsBytes(self,):
+        return bytes(json.dumps(self.GetPacket()),"utf-8") 
+
+    # Load values from dict to Packet()
+    def LoadPacket(self,data):
+        self.action = data['name']
+        self.data = data['data']
+        self.packet_created = data['packet-created']
+        self.token = data['token']
+
+        #TODO: Add some system that makes sure that packet that client sent
+        #wont be sent to other client without scrapping the token
+
 
 class Utilities():
     def __init__(self):
@@ -34,28 +65,21 @@ class Utilities():
         return self.token
 
     def createPacket(self,name:str='undefined-packet',data:dict=None,asbytes:bool=True):
-        packet = {
-            'action':name,
-            'data':data,
-            'packet-created':time.time(),
-            'token':self.token
-        }
-        
-        if asbytes:
-            return bytes(json.dumps(packet),"utf-8")
-        return packet
+        packet = Packet(name=name,token=self.token,data=data)
+        return packet.GetPacketAsBytes()
 
     #Return string or dict version of the packet.
     def decodePacket(self,packet:dict,asdict:bool=True):
         packet = packet.decode('utf-8')
         if asdict:
             try:
-                packet = json.loads(packet)
+                pobj = Packet()
+                pobj.LoadPacket(json.loads(packet))
             except:
                 print("Failed to decode packet")
                 print(packet)
                 return False
-        return packet
+        return pobj
 
     #Create own public and private keys.
     def createEncryptKeys(self,save:bool=True):
@@ -121,7 +145,7 @@ class Utilities():
 
 
 
-
+    #FIXME: Change getMethods to just return self
     def getMethods(self,):
         temp = {
             "createPacket": self.createPacket,
@@ -173,27 +197,5 @@ if __name__ == '__main__':
         'username':'cmdtvt',
         'password':'password'
     },False)
-    
 
-    '''
-    
-    ou.setToken("this is token")
-    
-    print(ou.decodePacket(ou.createPacket('auth',{
-        'username':'cmdtvt',
-        'password':'password'
-    })))
-    '''
-
-    encr = ou.encryptPacket(p,publicK)
-    print(encr)
-
-    print("#############################")
-
-    decr = ou.decryptPacket(encr,["token","data"])
-    print(decr)
-
-    methods = ou.getMethods()
-
-    print(methods['test']())
-    
+    print(p)
